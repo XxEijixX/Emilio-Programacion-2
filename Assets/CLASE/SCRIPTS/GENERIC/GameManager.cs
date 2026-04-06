@@ -6,9 +6,17 @@ public class GameManager : NetworkBehaviour
 {
     [Networked] private int ScorePlayerOne { get; set; }
     [Networked] private int ScorePlayerTwo { get; set; }
+    [Networked] private int ScorePlayerThree { get; set; }
+    [Networked] private int ScorePlayerFour { get; set; }
 
+    [Header("Scores Text")]
     [SerializeField] private TextMeshProUGUI scorePlayerOneText;
     [SerializeField] private TextMeshProUGUI scorePlayerTwoText;
+    [SerializeField] private TextMeshProUGUI scorePlayerThreeText;
+    [SerializeField] private TextMeshProUGUI scorePlayerFourText;
+
+    [Header("Final Message")]
+    [SerializeField] private TextMeshProUGUI finalMessageText;
 
     public override void Spawned()
     {
@@ -38,6 +46,20 @@ public class GameManager : NetworkBehaviour
         UpdateScoreDisplay();
     }
 
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    public void RpcScorePlayerThree()
+    {
+        if (Object.HasStateAuthority) ScorePlayerThree++;
+        UpdateScoreDisplay();
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    public void RpcScorePlayerFour()
+    {
+        if (Object.HasStateAuthority) ScorePlayerFour++;
+        UpdateScoreDisplay();
+    }
+
     // ⭐ MÉTODOS NECESARIOS PARA InteractionHandler ⭐
     public int GetScorePlayerOne()
     {
@@ -57,6 +79,8 @@ public class GameManager : NetworkBehaviour
         {
             ScorePlayerOne = 0;
             ScorePlayerTwo = 0;
+            ScorePlayerThree = 0;
+            ScorePlayerFour = 0;
         }
         UpdateScoreDisplay();
     }
