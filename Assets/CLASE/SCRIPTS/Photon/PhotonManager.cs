@@ -3,6 +3,7 @@ using Fusion.Sockets;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
 
@@ -12,6 +13,7 @@ public class PhotonManager : MonoBehaviour, INetworkRunnerCallbacks
     [SerializeField] NetworkSceneManagerDefault sceneManager;
     [SerializeField] private NetworkPrefabRef prefabPlayer;
     [SerializeField] private GameObject canvas;
+    [SerializeField] private UnityEvent onGameStarted;
 
     Dictionary<PlayerRef, NetworkObject> players = new Dictionary<PlayerRef, NetworkObject>();
     public List<SessionInfo> avaibleSessions = new List<SessionInfo>();
@@ -122,12 +124,16 @@ public class PhotonManager : MonoBehaviour, INetworkRunnerCallbacks
             return;
         }
 
-        NetworkInputData data = new NetworkInputData()
+        var buttons = new NetworkButtons();
+        buttons.Set((int)NetworkInfoData.BotonDisparo, InputManager.Instance.BotonDisparoPresionado());
+        buttons.Set((int)NetworkInfoData.BotonCorrer, InputManager.Instance.WasRunInputPressed());
+
+        NetworkInfoData data = new NetworkInfoData()
         {
             move = InputManager.Instance.GetMoveInput(),
             look = InputManager.Instance.GetMouseDelta(),
-            isRunning = InputManager.Instance.WasRunInputPressed(),
             yRotation = Camera.main != null ? Camera.main.transform.eulerAngles.y : 0f,
+            buttons = buttons,
         };
 
         input.Set(data);
@@ -194,10 +200,15 @@ public class PhotonManager : MonoBehaviour, INetworkRunnerCallbacks
         if (canvas != null) canvas.SetActive(false);
     }
 
-    public void CreateSession(string sessionName, int maxPlayers)  // Método para crear sesión personalizada
+    public void CreateSession(string sessionName, int maxPlayers)
     {
-        _sessionName = sessionName;
-        _maxPlayers = maxPlayers;
+        // Forzar máximo 4 jugadores
+        _maxPlayers = Mathf.Clamp(maxPlayers, 1, 4);
+
+        // Forzar máximo 6 caracteres en el nombre, o nombre random si viene vacío
+        _sessionName = string.IsNullOrWhiteSpace(sessionName)
+            ? RandomSessionName(6)
+            : sessionName.Substring(0, Mathf.Min(sessionName.Length, 6));
 
         StartGame(GameMode.Host);
     }
@@ -217,7 +228,7 @@ public class PhotonManager : MonoBehaviour, INetworkRunnerCallbacks
 
         string finalSessionName = string.IsNullOrEmpty(_sessionName) ? RandomSessionName(6) : _sessionName; // Usar el nombre personalizado si existe, sino generar uno aleatorio
 
-        int finalMaxPlayers = _maxPlayers > 0 ? _maxPlayers : 4; // Si _maxPlayers es mayor a 0, usarlo sino usar 4 por defecto
+        int finalMaxPlayers = Mathf.Clamp(_maxPlayers, 1, 4);
 
         Debug.Log($"Starting game - Session: {finalSessionName}, MaxPlayers: {finalMaxPlayers}");
 
@@ -225,6 +236,7 @@ public class PhotonManager : MonoBehaviour, INetworkRunnerCallbacks
         {
             GameMode = mode,
             SessionName = finalSessionName,
+            PlayerCount = finalMaxPlayers,
             Scene = scene,
             SceneManager = sceneManager,
             IsVisible = true,
@@ -235,6 +247,8 @@ public class PhotonManager : MonoBehaviour, INetworkRunnerCallbacks
         });
 
         if (canvas != null) canvas.SetActive(false);
+
+        onGameStarted?.Invoke();
 
         _sessionName = null;
         _maxPlayers = 4;

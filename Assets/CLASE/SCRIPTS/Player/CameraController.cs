@@ -61,7 +61,7 @@ public class CameraController : NetworkBehaviour
 
     private void RotateCamera(NetworkInfoData input)
     {
-        Vector2 velocity = Vector2.Scale(input.rotation, Vector2.one * mouseSensitivity);
+        Vector2 velocity = Vector2.Scale(input.look, Vector2.one * mouseSensitivity);
         smoothVelocity = Vector2.Lerp(smoothVelocity, velocity, 1 / smoothnes);
 
         Vector2 camVelocity = CamVel; // Obtengo la velocidad actual de la camara

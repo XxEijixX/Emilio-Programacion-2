@@ -1,4 +1,4 @@
-
+﻿
 using UnityEngine;
 
 public class InputManager : MonoBehaviour
@@ -21,6 +21,7 @@ public class InputManager : MonoBehaviour
         else
         {
             _instance = this;
+            DontDestroyOnLoad(gameObject); // ← agregar
             Debug.Log("Instance created");
         }
         playerControls = new PlayerControls();
@@ -66,7 +67,7 @@ public class InputManager : MonoBehaviour
         return playerControls.Player.Look.ReadValue<Vector2>();
     }
 
-    public bool BotonDisparoPresionado() // revisa si se presion� el bot�n de disparo
+    public bool BotonDisparoPresionado() // revisa si se presionó el botón de disparo
     {
         return playerControls.Player.Fire.IsPressed();
     }

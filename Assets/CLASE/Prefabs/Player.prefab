@@ -214,7 +214,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 5469612278446771263}
-  mouseSensitivity: 1
+  mouseSensitivity: 0.1
   smoothnes: 0
   maxAngleY: 80
   minAngleY: -80
@@ -224,7 +224,6 @@ MonoBehaviour:
   walkingFrequency: 10
   runningFrequency: 18
   resetPosSpeed: 3
-  toggleSpeed: 3
   moveHead: 0
 --- !u!1001 &4599077678358391152
 PrefabInstance:
@@ -353,31 +352,31 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 55490c0cec081d54ead6cc6d7cbaecc4, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: -27.35
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 55490c0cec081d54ead6cc6d7cbaecc4, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: -16.75
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 55490c0cec081d54ead6cc6d7cbaecc4, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: -11.55
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 55490c0cec081d54ead6cc6d7cbaecc4, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 1
+      value: 0.67829764
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 55490c0cec081d54ead6cc6d7cbaecc4, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 55490c0cec081d54ead6cc6d7cbaecc4, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: 0.73478734
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 55490c0cec081d54ead6cc6d7cbaecc4, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 55490c0cec081d54ead6cc6d7cbaecc4, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -385,7 +384,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 55490c0cec081d54ead6cc6d7cbaecc4, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
+      value: 94.578
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 55490c0cec081d54ead6cc6d7cbaecc4, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
@@ -1104,9 +1103,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 55490c0cec081d54ead6cc6d7cbaecc4, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2669923342165466154}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 55490c0cec081d54ead6cc6d7cbaecc4, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 4147393707883737849}
   m_SourcePrefab: {fileID: 100100000, guid: 55490c0cec081d54ead6cc6d7cbaecc4, type: 3}
 --- !u!1 &4660143487811786373 stripped
 GameObject:
@@ -1216,9 +1212,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _animator: {fileID: 1815343133562006909}
-  walkSpeed: 10
-  runSpeed: 20
-  crouchSpeed: 3.9
+  walkSpeed: 2500
+  runSpeed: 4500
 --- !u!114 &5482671142433963662
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1253,7 +1248,6 @@ MonoBehaviour:
   - {fileID: 5482671142433963662}
   - {fileID: 8363960802194461786}
   - {fileID: 2669923342165466154}
-  - {fileID: 4147393707883737849}
   - {fileID: 46326378493854190}
   - {fileID: 7173218420691984245}
   ForceRemoteRenderTimeframe: 0
@@ -1308,21 +1302,6 @@ MonoBehaviour:
     CompressNetworkPosition: 0
     ForceSingleOverlapQuery: 0
     SuppressConvexMeshColliders: 0
---- !u!114 &4147393707883737849
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4660143487811786373}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ebb582c2083fba84b903637adcab0404, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  timerText: {fileID: 0}
-  winnerText: {fileID: 0}
-  gameManager: {fileID: 0}
 --- !u!4 &5469612278446771263 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 55490c0cec081d54ead6cc6d7cbaecc4, type: 3}

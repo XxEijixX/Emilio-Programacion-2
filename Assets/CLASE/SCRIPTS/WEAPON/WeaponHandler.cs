@@ -10,9 +10,9 @@ public class WeaponHandler : NetworkBehaviour
         if (!Object.HasInputAuthority)
             return;
 
-        if (GetInput(out NetworkInputData input))
+        if (GetInput(out NetworkInfoData input))
         {
-            if (input.shoot)
+            if (input.buttons.IsSet((int)NetworkInfoData.BotonDisparo))
             {
                 actualWeapon.RigidBodyShoot();
             }
