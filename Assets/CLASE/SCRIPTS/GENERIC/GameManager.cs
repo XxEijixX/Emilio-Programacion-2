@@ -30,6 +30,12 @@ public class GameManager : NetworkBehaviour
 
         if (scorePlayerTwoText != null)
             scorePlayerTwoText.text = ScorePlayerTwo.ToString();
+
+        if (scorePlayerThreeText != null)
+            scorePlayerThreeText.text = ScorePlayerThree.ToString();
+
+        if (scorePlayerFourText != null)
+            scorePlayerFourText.text = ScorePlayerFour.ToString();
     }
 
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
@@ -57,31 +63,6 @@ public class GameManager : NetworkBehaviour
     public void RpcScorePlayerFour()
     {
         if (Object.HasStateAuthority) ScorePlayerFour++;
-        UpdateScoreDisplay();
-    }
-
-    // ⭐ MÉTODOS NECESARIOS PARA InteractionHandler ⭐
-    public int GetScorePlayerOne()
-    {
-        return ScorePlayerOne;
-    }
-
-    public int GetScorePlayerTwo()
-    {
-        return ScorePlayerTwo;
-    }
-
-    // Método para reiniciar puntajes (opcional)
-    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-    public void RpcResetScores()
-    {
-        if (Object.HasStateAuthority)
-        {
-            ScorePlayerOne = 0;
-            ScorePlayerTwo = 0;
-            ScorePlayerThree = 0;
-            ScorePlayerFour = 0;
-        }
         UpdateScoreDisplay();
     }
 }

@@ -18,10 +18,16 @@ public class PhotonManager : MonoBehaviour, INetworkRunnerCallbacks
     Dictionary<PlayerRef, NetworkObject> players = new Dictionary<PlayerRef, NetworkObject>();
     public List<SessionInfo> avaibleSessions = new List<SessionInfo>();
     public event Action onSessionListUpdated;
+    public event Action onLobbyFull; // Evento para notificar que el lobby está lleno
+    public event Action onPlayerCountChanged; // Evento para notificar que el conteo de jugadores ha cambiado
     public static PhotonManager _PhotonManager;
 
     private string _sessionName; // nombre personalizado para la sesión,
     private int _maxPlayers = 4; // cantidad máxima de jugadores personalizada
+    private int _confirmedMaxPlayers = 4;
+
+    public int CurrentPlayers => runner != null && runner.IsRunning ? runner.SessionInfo.PlayerCount : players.Count;
+    public int MaxPlayers => _confirmedMaxPlayers;
 
     private void Awake()
     {
@@ -116,6 +122,8 @@ public class PhotonManager : MonoBehaviour, INetworkRunnerCallbacks
 
     }
 
+    #endregion
+
     public void OnInput(NetworkRunner runner_, NetworkInput input)
     {
         if (InputManager.Instance == null)
@@ -141,9 +149,13 @@ public class PhotonManager : MonoBehaviour, INetworkRunnerCallbacks
 
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
+        int currentCount = runner.SessionInfo.PlayerCount;
+        onPlayerCountChanged?.Invoke();
+        if (currentCount >= _confirmedMaxPlayers) onLobbyFull?.Invoke();
+
         if (!runner.IsServer) return;
 
-        if (SceneManager.GetActiveScene().name == "Victoria")
+        if (SceneManager.GetActiveScene().name == "Game")
         {
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
@@ -155,11 +167,16 @@ public class PhotonManager : MonoBehaviour, INetworkRunnerCallbacks
             Vector3 spawnPosition = new Vector3(player.RawEncoded % runner.Config.Simulation.PlayerCount * 0f, 12f, -15f);
             NetworkObject networkObject = runner.Spawn(prefabPlayer, spawnPosition, Quaternion.identity, player);
             players.Add(player, networkObject);
+
+            onPlayerCountChanged?.Invoke(); // Notificar que el conteo de jugadores ha cambiado
+
+            if (players.Count >= _maxPlayers) onLobbyFull?.Invoke();
         }
         else
         {
             Debug.Log($"Player {player.PlayerId} already exists in playerList.");
         }
+
     }
 
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
@@ -174,9 +191,7 @@ public class PhotonManager : MonoBehaviour, INetworkRunnerCallbacks
         }
     }
 
-    #endregion
-
-    public async void JoinSession(string sessionname)
+    public async void JoinSession(string sessionname) // Método para unirse a una sesión específica por nombre
     {
         runner.ProvideInput = true;
 
@@ -197,7 +212,15 @@ public class PhotonManager : MonoBehaviour, INetworkRunnerCallbacks
             IsVisible = true
         });
 
+        // Leer el MaxPlayers que el host guardó en SessionProperties
+        if (runner.SessionInfo != null && runner.SessionInfo.Properties.TryGetValue("MaxPlayers", out var maxProp))
+        {
+            _confirmedMaxPlayers = (int)maxProp;
+        }
+
         if (canvas != null) canvas.SetActive(false);
+        onGameStarted?.Invoke();
+        onPlayerCountChanged?.Invoke(); // actualizar texto inicial en el cliente
     }
 
     public void CreateSession(string sessionName, int maxPlayers)
@@ -229,6 +252,9 @@ public class PhotonManager : MonoBehaviour, INetworkRunnerCallbacks
         string finalSessionName = string.IsNullOrEmpty(_sessionName) ? RandomSessionName(6) : _sessionName; // Usar el nombre personalizado si existe, sino generar uno aleatorio
 
         int finalMaxPlayers = Mathf.Clamp(_maxPlayers, 1, 4);
+        _confirmedMaxPlayers = finalMaxPlayers;
+
+        _maxPlayers = finalMaxPlayers;
 
         Debug.Log($"Starting game - Session: {finalSessionName}, MaxPlayers: {finalMaxPlayers}");
 
@@ -248,6 +274,7 @@ public class PhotonManager : MonoBehaviour, INetworkRunnerCallbacks
 
         if (canvas != null) canvas.SetActive(false);
 
+        onPlayerCountChanged?.Invoke();
         onGameStarted?.Invoke();
 
         _sessionName = null;

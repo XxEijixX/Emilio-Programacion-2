@@ -33,7 +33,7 @@ public class Projetile : NetworkBehaviour
 
         ContactPoint impacto = collision.GetContact(0);
 
-        if (collision.gameObject.CompareTag("Player") || (collision.gameObject.CompareTag("Target")))
+        if ((collision.gameObject.CompareTag("Target")))
         {
             if (collision.gameObject.TryGetComponent<Health>(out Health health))
             {

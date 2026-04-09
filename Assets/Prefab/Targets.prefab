@@ -11,9 +11,9 @@ GameObject:
   - component: {fileID: 7677547763921780901}
   - component: {fileID: 7555086962269843994}
   - component: {fileID: 4812313943615489244}
-  - component: {fileID: 2486115887156571922}
   - component: {fileID: 3145978157910788014}
   - component: {fileID: 3579207265784374739}
+  - component: {fileID: 6004137903854960064}
   m_Layer: 0
   m_Name: Targets
   m_TagString: Target
@@ -90,20 +90,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &2486115887156571922
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4281725220475453278}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3700ca8d4c402984d8e0f1bfa799b9af, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxHealth: 1
-  __currentHealth: 0
 --- !u!114 &3145978157910788014
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -121,7 +107,7 @@ MonoBehaviour:
   Flags: 262145
   NestedObjects: []
   NetworkedBehaviours:
-  - {fileID: 2486115887156571922}
+  - {fileID: 6004137903854960064}
   ForceRemoteRenderTimeframe: 0
 --- !u!65 &3579207265784374739
 BoxCollider:
@@ -144,3 +130,17 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.1127189, y: 1.0491633, z: 0.8825732}
   m_Center: {x: -0.0058064754, y: 0.5332588, z: 0.0025508103}
+--- !u!114 &6004137903854960064
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4281725220475453278}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a6e35bdfd01344498c048adf14a1f19, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 1
+  _CurrentHealth: 0
