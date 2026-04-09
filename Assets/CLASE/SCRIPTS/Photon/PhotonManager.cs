@@ -2,6 +2,7 @@
 using Fusion.Sockets;
 using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
@@ -15,15 +16,18 @@ public class PhotonManager : MonoBehaviour, INetworkRunnerCallbacks
     [SerializeField] private GameObject canvas;
     [SerializeField] private UnityEvent onGameStarted;
 
+    [Header("Game State")]
+    [SerializeField] private GameObject targets;
+    [SerializeField] private GameObject waitingPanel;
+    [SerializeField] private TextMeshProUGUI waitingText;
+
     Dictionary<PlayerRef, NetworkObject> players = new Dictionary<PlayerRef, NetworkObject>();
     public List<SessionInfo> avaibleSessions = new List<SessionInfo>();
     public event Action onSessionListUpdated;
-    public event Action onLobbyFull; // Evento para notificar que el lobby está lleno
-    public event Action onPlayerCountChanged; // Evento para notificar que el conteo de jugadores ha cambiado
     public static PhotonManager _PhotonManager;
 
-    private string _sessionName; // nombre personalizado para la sesión,
-    private int _maxPlayers = 4; // cantidad máxima de jugadores personalizada
+    private string _sessionName;
+    private int _maxPlayers = 4;
     private int _confirmedMaxPlayers = 4;
 
     public int CurrentPlayers => runner != null && runner.IsRunning ? runner.SessionInfo.PlayerCount : players.Count;
@@ -38,6 +42,10 @@ public class PhotonManager : MonoBehaviour, INetworkRunnerCallbacks
     private void Start()
     {
         runner.AddCallbacks(this);
+
+        // Estado inicial
+        if (targets != null) targets.SetActive(false);
+        if (waitingPanel != null) waitingPanel.SetActive(false);
     }
 
     public async void JoinLobby()
@@ -47,81 +55,21 @@ public class PhotonManager : MonoBehaviour, INetworkRunnerCallbacks
     }
 
     #region Metodos de Photon
-    public void OnConnectedToServer(NetworkRunner runner)
-    {
-
-    }
-
-    public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason)
-    {
-
-    }
-
-    public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token)
-    {
-
-    }
-
-    public void OnCustomAuthenticationResponse(NetworkRunner runner, Dictionary<string, object> data)
-    {
-
-    }
-
-    public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason)
-    {
-
-    }
-
-    public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken)
-    {
-
-    }
-
-    public void OnReliableDataProgress(NetworkRunner runner, PlayerRef player, ReliableKey key, float progress)
-    {
-
-    }
-
-    public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ReliableKey key, ArraySegment<byte> data)
-    {
-
-    }
-
-    public void OnSceneLoadDone(NetworkRunner runner)
-    {
-
-    }
-
-    public void OnSceneLoadStart(NetworkRunner runner)
-    {
-
-    }
-
-    public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)
-    {
-
-    }
-
-    public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message)
-    {
-
-    }
-
-    public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input)
-    {
-
-    }
-
-    public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)
-    {
-
-    }
-
-    public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)
-    {
-
-    }
-
+    public void OnConnectedToServer(NetworkRunner runner) { }
+    public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason) { }
+    public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token) { }
+    public void OnCustomAuthenticationResponse(NetworkRunner runner, Dictionary<string, object> data) { }
+    public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason) { }
+    public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken) { }
+    public void OnReliableDataProgress(NetworkRunner runner, PlayerRef player, ReliableKey key, float progress) { }
+    public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ReliableKey key, ArraySegment<byte> data) { }
+    public void OnSceneLoadDone(NetworkRunner runner) { }
+    public void OnSceneLoadStart(NetworkRunner runner) { }
+    public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) { }
+    public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message) { }
+    public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) { }
+    public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
+    public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
     #endregion
 
     public void OnInput(NetworkRunner runner_, NetworkInput input)
@@ -150,8 +98,9 @@ public class PhotonManager : MonoBehaviour, INetworkRunnerCallbacks
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
         int currentCount = runner.SessionInfo.PlayerCount;
-        onPlayerCountChanged?.Invoke();
-        if (currentCount >= _confirmedMaxPlayers) onLobbyFull?.Invoke();
+
+        // Se actualiza en host Y clientes
+        ActualizarWaitingPanel(currentCount);
 
         if (!runner.IsServer) return;
 
@@ -167,16 +116,11 @@ public class PhotonManager : MonoBehaviour, INetworkRunnerCallbacks
             Vector3 spawnPosition = new Vector3(player.RawEncoded % runner.Config.Simulation.PlayerCount * 0f, 12f, -15f);
             NetworkObject networkObject = runner.Spawn(prefabPlayer, spawnPosition, Quaternion.identity, player);
             players.Add(player, networkObject);
-
-            onPlayerCountChanged?.Invoke(); // Notificar que el conteo de jugadores ha cambiado
-
-            if (players.Count >= _maxPlayers) onLobbyFull?.Invoke();
         }
         else
         {
             Debug.Log($"Player {player.PlayerId} already exists in playerList.");
         }
-
     }
 
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
@@ -184,24 +128,34 @@ public class PhotonManager : MonoBehaviour, INetworkRunnerCallbacks
         if (players.ContainsKey(player))
         {
             if (players[player] != null)
-            {
                 runner.Despawn(players[player]);
-            }
             players.Remove(player);
         }
+
+        // Actualizar panel si alguien se va
+        ActualizarWaitingPanel(runner.SessionInfo.PlayerCount);
     }
 
-    public async void JoinSession(string sessionname) // Método para unirse a una sesión específica por nombre
+    // ── Lógica centralizada de waiting panel ──────────────────────────────
+    private void ActualizarWaitingPanel(int currentCount)
+    {
+        bool lleno = currentCount >= _confirmedMaxPlayers;
+
+        if (waitingText != null)
+            waitingText.text = $"Esperando jugadores... {currentCount}/{_confirmedMaxPlayers}";
+
+        if (waitingPanel != null) waitingPanel.SetActive(!lleno);
+        if (targets != null) targets.SetActive(lleno);
+    }
+
+    public async void JoinSession(string sessionname)
     {
         runner.ProvideInput = true;
 
         var scene = SceneRef.FromIndex(0);
         var sceneInfo = new NetworkSceneInfo();
-
         if (scene.IsValid)
-        {
             sceneInfo.AddSceneRef(scene, LoadSceneMode.Additive);
-        }
 
         await runner.StartGame(new StartGameArgs()
         {
@@ -212,23 +166,23 @@ public class PhotonManager : MonoBehaviour, INetworkRunnerCallbacks
             IsVisible = true
         });
 
-        // Leer el MaxPlayers que el host guardó en SessionProperties
-        if (runner.SessionInfo != null && runner.SessionInfo.Properties.TryGetValue("MaxPlayers", out var maxProp))
+        // Leer MaxPlayers que el host guardó en SessionProperties
+        if (runner.SessionInfo != null &&
+            runner.SessionInfo.Properties.TryGetValue("MaxPlayers", out var maxProp))
         {
             _confirmedMaxPlayers = (int)maxProp;
         }
 
+        // Actualizar panel con el estado actual al entrar
+        ActualizarWaitingPanel(runner.SessionInfo.PlayerCount);
+
         if (canvas != null) canvas.SetActive(false);
         onGameStarted?.Invoke();
-        onPlayerCountChanged?.Invoke(); // actualizar texto inicial en el cliente
     }
 
     public void CreateSession(string sessionName, int maxPlayers)
     {
-        // Forzar máximo 4 jugadores
         _maxPlayers = Mathf.Clamp(maxPlayers, 1, 4);
-
-        // Forzar máximo 6 caracteres en el nombre, o nombre random si viene vacío
         _sessionName = string.IsNullOrWhiteSpace(sessionName)
             ? RandomSessionName(6)
             : sessionName.Substring(0, Mathf.Min(sessionName.Length, 6));
@@ -243,18 +197,13 @@ public class PhotonManager : MonoBehaviour, INetworkRunnerCallbacks
 
         var scene = SceneRef.FromIndex(0);
         var sceneInfo = new NetworkSceneInfo();
-
         if (scene.IsValid)
-        {
             sceneInfo.AddSceneRef(scene, LoadSceneMode.Additive);
-        }
 
-        string finalSessionName = string.IsNullOrEmpty(_sessionName) ? RandomSessionName(6) : _sessionName; // Usar el nombre personalizado si existe, sino generar uno aleatorio
-
+        string finalSessionName = string.IsNullOrEmpty(_sessionName) ? RandomSessionName(6) : _sessionName;
         int finalMaxPlayers = Mathf.Clamp(_maxPlayers, 1, 4);
-        _confirmedMaxPlayers = finalMaxPlayers;
 
-        _maxPlayers = finalMaxPlayers;
+        _confirmedMaxPlayers = finalMaxPlayers;
 
         Debug.Log($"Starting game - Session: {finalSessionName}, MaxPlayers: {finalMaxPlayers}");
 
@@ -266,16 +215,17 @@ public class PhotonManager : MonoBehaviour, INetworkRunnerCallbacks
             Scene = scene,
             SceneManager = sceneManager,
             IsVisible = true,
-            SessionProperties = new Dictionary<string, SessionProperty>() //propiedad personalizada de MaxPlayers a la sesión
+            SessionProperties = new Dictionary<string, SessionProperty>()
             {
                 { "MaxPlayers", finalMaxPlayers }
             }
         });
 
-        if (canvas != null) canvas.SetActive(false);
-
-        onPlayerCountChanged?.Invoke();
+        // Notificar ANTES de apagar el canvas
         onGameStarted?.Invoke();
+        ActualizarWaitingPanel(runner.SessionInfo.PlayerCount);
+
+        if (canvas != null) canvas.SetActive(false);
 
         _sessionName = null;
         _maxPlayers = 4;
@@ -290,8 +240,8 @@ public class PhotonManager : MonoBehaviour, INetworkRunnerCallbacks
 
     public void StartGameAsHost()
     {
-        _sessionName = null; // Nombre aleatorio
-        _maxPlayers = 4; // 4 jugadores por defecto
+        _sessionName = null;
+        _maxPlayers = 4;
         StartGame(GameMode.Host);
     }
 
@@ -305,10 +255,7 @@ public class PhotonManager : MonoBehaviour, INetworkRunnerCallbacks
         string caracters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
         string sessionName = "";
         for (int i = 0; i < sessionNameLength; i++)
-        {
-            char randomChar = caracters[Random.Range(0, caracters.Length)];
-            sessionName += randomChar;
-        }
+            sessionName += caracters[Random.Range(0, caracters.Length)];
         return sessionName;
     }
 }

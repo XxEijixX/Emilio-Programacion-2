@@ -15,44 +15,14 @@ public class LobbyManager : MonoBehaviour
     [SerializeField] private TMP_InputField inputFieldNameLobby;
     [SerializeField] private TMP_InputField inputFieldPlayerCount;
     [SerializeField] private TextMeshProUGUI errorMessage;
-                                                           
-    [Header("Game Start")]
-    [SerializeField] private GameObject targets;          // el GameObject "targets"
-    [SerializeField] private GameObject waitingPanel;     // el padre del texto de espera
-    [SerializeField] private TextMeshProUGUI waitingText; // el TMP del mensaje
 
     private void Start()
     {
         PhotonManager._PhotonManager.onSessionListUpdated += DestroyCanvasContent;
         PhotonManager._PhotonManager.onSessionListUpdated += UpdateSesioncanvas;
 
-        PhotonManager._PhotonManager.onLobbyFull += OnLobbyFull;
-        PhotonManager._PhotonManager.onPlayerCountChanged += ActualizarConteoJugadores;
-
         if (panelCreateLobby != null) panelCreateLobby.SetActive(false);
         if (inputFieldPlayerCount != null) inputFieldPlayerCount.text = "4";
-
-        if (targets != null) targets.SetActive(false);
-        if (waitingPanel != null) waitingPanel.SetActive(true);
-
-        ActualizarConteoJugadores();
-    }
-
-    private void OnLobbyFull()
-    {
-        if (targets != null) targets.SetActive(true);
-        if (waitingPanel != null) waitingPanel.SetActive(false);
-    }
-
-    private void ActualizarConteoJugadores()
-    {
-        Debug.Log($"waitingText es null: {waitingText == null}");
-        if (waitingText == null) return;
-        if (waitingPanel != null) waitingPanel.SetActive(true);
-        int current = PhotonManager._PhotonManager.CurrentPlayers;
-        int max = PhotonManager._PhotonManager.MaxPlayers;
-        waitingText.text = $"Waiting for players... {current}/{max}";
-        Debug.Log($"Texto actualizado: {current}/{max}");
     }
 
     public void OnSearchLobbiesPressed()
@@ -69,7 +39,6 @@ public class LobbyManager : MonoBehaviour
     {
         string sessionName = inputFieldNameLobby != null ? inputFieldNameLobby.text : "New Session";
 
-        // Validar nombre de sesión 
         if (string.IsNullOrEmpty(sessionName) || sessionName.Trim().Length < 3 || sessionName.Trim().Length > 6)
         {
             if (errorMessage != null) errorMessage.text = "Session name must be between 3 and 6 characters long";
@@ -78,7 +47,6 @@ public class LobbyManager : MonoBehaviour
 
         int maxPlayers = 4;
 
-        // Validar cantidad de jugadores
         if (inputFieldPlayerCount != null && int.TryParse(inputFieldPlayerCount.text, out int inputPlayers))
         {
             if (inputPlayers > 4)
@@ -89,13 +57,13 @@ public class LobbyManager : MonoBehaviour
             }
             else if (inputPlayers < 2)
             {
-                if (errorMessage != null) errorMessage.text = "Minimum 2 player required";
+                if (errorMessage != null) errorMessage.text = "Minimum 2 players required";
                 inputFieldPlayerCount.text = "2";
                 return;
             }
             else
             {
-                maxPlayers = inputPlayers; // Usar el valor ingresado si es válido
+                maxPlayers = inputPlayers;
             }
         }
 
@@ -103,13 +71,12 @@ public class LobbyManager : MonoBehaviour
 
         PhotonManager._PhotonManager.CreateSession(sessionName, maxPlayers);
 
-        // Limpiar inputs
         if (inputFieldNameLobby != null) inputFieldNameLobby.text = "";
         if (inputFieldPlayerCount != null) inputFieldPlayerCount.text = "4";
         if (panelCreateLobby != null) panelCreateLobby.SetActive(false);
     }
 
-    public void OnCancelCreateSession() // Cierra el panel de creación sin hacer nada
+    public void OnCancelCreateSession()
     {
         if (inputFieldNameLobby != null) inputFieldNameLobby.text = "";
         if (inputFieldPlayerCount != null) inputFieldPlayerCount.text = "4";
@@ -130,25 +97,21 @@ public class LobbyManager : MonoBehaviour
         if (viewportContent != null)
         {
             for (int i = 0; i < viewportContent.childCount; i++)
-            {
                 Destroy(viewportContent.GetChild(i).gameObject);
-            }
         }
 
         if (warningMessage != null)
         {
-            bool hasLobbies = PhotonManager._PhotonManager.avaibleSessions != null && PhotonManager._PhotonManager.avaibleSessions.Count > 0;
+            bool hasLobbies = PhotonManager._PhotonManager.avaibleSessions != null
+                           && PhotonManager._PhotonManager.avaibleSessions.Count > 0;
 
-            if (!hasLobbies)
-            {
-                if (warningMessage.GetComponentInChildren<TextMeshProUGUI>() != null) warningMessage.GetComponentInChildren<TextMeshProUGUI>().text = "No Lobbies Available";
-                if (warningMessage.GetComponent<Image>() != null) warningMessage.GetComponent<Image>().color = Color.red;
-            }
-            else
-            {
-                if (warningMessage.GetComponentInChildren<TextMeshProUGUI>() != null) warningMessage.GetComponentInChildren<TextMeshProUGUI>().text = "Lobbies Available";
-                if (warningMessage.GetComponent<Image>() != null) warningMessage.GetComponent<Image>().color = Color.green;
-            }
+            if (warningMessage.GetComponentInChildren<TextMeshProUGUI>() != null)
+                warningMessage.GetComponentInChildren<TextMeshProUGUI>().text =
+                    hasLobbies ? "Lobbies Available" : "No Lobbies Available";
+
+            if (warningMessage.GetComponent<Image>() != null)
+                warningMessage.GetComponent<Image>().color =
+                    hasLobbies ? Color.green : Color.red;
         }
     }
 
@@ -157,7 +120,5 @@ public class LobbyManager : MonoBehaviour
         if (PhotonManager._PhotonManager == null) return;
         PhotonManager._PhotonManager.onSessionListUpdated -= DestroyCanvasContent;
         PhotonManager._PhotonManager.onSessionListUpdated -= UpdateSesioncanvas;
-        PhotonManager._PhotonManager.onLobbyFull -= OnLobbyFull;
-        PhotonManager._PhotonManager.onPlayerCountChanged -= ActualizarConteoJugadores;
     }
 }

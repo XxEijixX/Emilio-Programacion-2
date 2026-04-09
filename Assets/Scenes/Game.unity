@@ -587,6 +587,9 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 1
         m_CallState: 2
+  targets: {fileID: 1056862030}
+  waitingPanel: {fileID: 1436480070}
+  waitingText: {fileID: 1104324433}
 --- !u!4 &125493559
 Transform:
   m_ObjectHideFlags: 0
@@ -3598,9 +3601,6 @@ MonoBehaviour:
   inputFieldNameLobby: {fileID: 1213902490}
   inputFieldPlayerCount: {fileID: 1939333661}
   errorMessage: {fileID: 1420837317}
-  targets: {fileID: 1056862030}
-  waitingPanel: {fileID: 1436480070}
-  waitingText: {fileID: 1104324433}
 --- !u!4 &607250995
 Transform:
   m_ObjectHideFlags: 0
