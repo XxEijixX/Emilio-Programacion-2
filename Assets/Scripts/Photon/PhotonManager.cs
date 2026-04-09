@@ -99,8 +99,7 @@ public class PhotonManager : MonoBehaviour, INetworkRunnerCallbacks
     {
         int currentCount = runner.SessionInfo.PlayerCount;
 
-        // Se actualiza en host Y clientes
-        ActualizarWaitingPanel(currentCount);
+        ActualizarWaitingPanel(currentCount);    // Se actualiza en host Y clientes
 
         if (!runner.IsServer) return;
 
@@ -113,9 +112,13 @@ public class PhotonManager : MonoBehaviour, INetworkRunnerCallbacks
         if (!players.ContainsKey(player))
         {
             Debug.Log($"Player Joined: {player.PlayerId}");
-            Vector3 spawnPosition = new Vector3(player.RawEncoded % runner.Config.Simulation.PlayerCount * 0f, 12f, -15f);
+            Vector3 spawnPosition = new Vector3(player.RawEncoded % runner.Config.Simulation.PlayerCount * 0f, 6f, -15f);
             NetworkObject networkObject = runner.Spawn(prefabPlayer, spawnPosition, Quaternion.identity, player);
             players.Add(player, networkObject);
+
+            // Registrar jugador en GameManager cuando entra
+            GameManager gameManager = FindFirstObjectByType<GameManager>();
+            if (gameManager != null) gameManager.RegistrarJugador(player, players.Count - 1); // índice 0,1,2,3
         }
         else
         {

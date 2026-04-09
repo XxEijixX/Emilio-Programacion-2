@@ -1793,6 +1793,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 1
         m_CallState: 2
+      - m_Target: {fileID: 435361452}
+        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+        m_MethodName: SetActive
+        m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &276779328
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4326,6 +4338,7 @@ MonoBehaviour:
   scorePlayerThreeText: {fileID: 926955438}
   scorePlayerFourText: {fileID: 1979542384}
   finalMessageText: {fileID: 0}
+  finalMessagePanel: {fileID: 0}
 --- !u!4 &855602954
 Transform:
   m_ObjectHideFlags: 0
@@ -11396,6 +11409,10 @@ PrefabInstance:
     - target: {fileID: 4281725220475453278, guid: 50a1892ed37e49d44be8858e2dbafcde, type: 3}
       propertyPath: m_Name
       value: Targets
+      objectReference: {fileID: 0}
+    - target: {fileID: 4812313943615489244, guid: 50a1892ed37e49d44be8858e2dbafcde, type: 3}
+      propertyPath: m_Enabled
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7677547763921780901, guid: 50a1892ed37e49d44be8858e2dbafcde, type: 3}
       propertyPath: m_LocalPosition.x

@@ -1,4 +1,4 @@
-using Fusion;
+﻿using Fusion;
 using System.Linq;
 using UnityEngine;
 
@@ -29,25 +29,11 @@ public class Health : NetworkBehaviour
         if (gameObject.CompareTag("Target"))
         {
             GameManager gameManager = FindFirstObjectByType<GameManager>();
-
-            if (executioner != PlayerRef.None)
-            {
-                PlayerRef[] players = Runner.ActivePlayers.ToArray();
-
-                if (players.Length >= 1)
-                {
-                    if (executioner == players[0])
-                    {
-                        gameManager.RpcScorePlayerOne();
-                    }
-                    else if (players.Length >= 2 && executioner == players[1])
-                    {
-                        gameManager.RpcScorePlayerTwo();
-                    }
-                }
-            }
+            if (gameManager != null && executioner != PlayerRef.None)
+                gameManager.Rpc_AddScore(executioner);
         }
 
-        if (Object != null && Object.HasStateAuthority) Runner.Despawn(Object);
+        if (Object != null && Object.HasStateAuthority)
+            Runner.Despawn(Object);
     }
 }
