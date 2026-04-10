@@ -3488,7 +3488,7 @@ GameObject:
   - component: {fileID: 365260157}
   - component: {fileID: 365260156}
   m_Layer: 5
-  m_Name: Bg P1
+  m_Name: 'Bg '
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6549,7 +6549,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 34749e6f9c8bd1a499470fba9695152a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxScore: 10
+  maxScore: 15
   winObject: {fileID: 1853184009}
   scorePlayerOneText: {fileID: 1058934856}
   scorePlayerTwoText: {fileID: 1935663197}
@@ -13565,14 +13565,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0.990566, b: 0.18147488, a: 1}
+  m_Color: {r: 0.6132076, g: 0.48158357, b: 0, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 6858abb4516aae344881bf286b3aac33, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 967c7b47090d34cf090c40749e45f0b4, type: 3}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
