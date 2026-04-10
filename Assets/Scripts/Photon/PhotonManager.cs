@@ -118,7 +118,15 @@ public class PhotonManager : MonoBehaviour, INetworkRunnerCallbacks
 
             // Registrar jugador en GameManager cuando entra
             GameManager gameManager = FindFirstObjectByType<GameManager>();
-            if (gameManager != null) gameManager.RegistrarJugador(player, players.Count - 1); // índice 0,1,2,3
+            if (gameManager != null)
+            {
+                int index = players.Count - 1;
+
+                // Obtener username desde PlayFabManager si está disponible
+                string username = PlayFabManager.Instance != null && !string.IsNullOrEmpty(PlayFabManager.Instance.UsernameActual) ? PlayFabManager.Instance.UsernameActual : $"Player {index + 1}";
+
+                gameManager.RegistrarJugador(player, index, username);
+            }
         }
         else
         {
