@@ -88,10 +88,43 @@ public class CameraController : NetworkBehaviour
     }
     public override void Spawned() // Al momento de hacer spawn 
     {
+        Transform body = player.Find("Body");
+
         if (!HasInputAuthority)
         {
-            GetComponent<Camera>().enabled = false; // Desactiva la camara si no tiene autoridad de input
-            GetComponent<AudioListener>().enabled = false; // Desactiva el audio listener si no tiene autoridad de input
+            // Client Player
+            GetComponent<Camera>().enabled = false;
+            GetComponent<AudioListener>().enabled = false;
+
+            if (body != null)
+            {
+                int remoteLayer = LayerMask.NameToLayer("RemotePlayer");
+                SetLayers(body.gameObject, remoteLayer);
+            }
+        }
+
+        else
+        {
+            // Host Player
+            Camera hostCam = GetComponent<Camera>();
+
+            if (body != null)
+            {
+                int hostLayer = LayerMask.NameToLayer("LocalPlayer");
+                SetLayers(body.gameObject, hostLayer);
+
+                int hideLayer = ~(1 << hostLayer);
+                hostCam.cullingMask = hideLayer;
+            }
+        }
+    }
+
+    private void SetLayers(GameObject obj, int layer)
+    {
+        obj.layer = layer;
+        foreach (Transform child in obj.transform)
+        {
+            SetLayers(child.gameObject, layer);
         }
     }
 
