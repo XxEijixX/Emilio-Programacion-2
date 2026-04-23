@@ -1,4 +1,6 @@
-﻿using PlayFab;
+﻿using System;
+using System.Collections.Generic;
+using PlayFab;
 using PlayFab.ClientModels;
 using TMPro;
 using UnityEngine;
@@ -272,4 +274,36 @@ public class PlayFabManager : MonoBehaviour
         }
     }
     #endregion Feedback
+
+    public void ObtenerLeaderboard(Action<List<PlayerLeaderboardEntry>> onComplete, int maxResults = 20, string statisticName = "HighScore")
+    {
+        PlayFabClientAPI.GetLeaderboard(new GetLeaderboardRequest
+        {
+            StatisticName = statisticName,
+            StartPosition = 0,
+            MaxResultsCount = maxResults
+        },
+        result =>
+        {
+            onComplete?.Invoke(result.Leaderboard);
+        },
+        error =>
+        {
+            MostrarError("Error obteniendo leaderboard: " + error.ErrorMessage);
+            onComplete?.Invoke(new List<PlayerLeaderboardEntry>());
+        });
+    }
+
+    public void EnviarScore(int score, string statisticName = "HighScore")
+    {
+        PlayFabClientAPI.UpdatePlayerStatistics(new UpdatePlayerStatisticsRequest
+        {
+            Statistics = new List<StatisticUpdate>
+        {
+            new StatisticUpdate { StatisticName = statisticName, Value = score }
+        }
+        },
+        result => Debug.Log("Score enviado: " + score),
+        error => Debug.LogError("Error enviando score: " + error.ErrorMessage));
+    }
 }

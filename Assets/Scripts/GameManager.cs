@@ -111,7 +111,6 @@ public class GameManager : NetworkBehaviour
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
     private void Rpc_TriggerWin(int winnerIndex)
     {
-        // Obtener nombre del ganador desde el texto ya asignado
         string winnerName = winnerIndex switch
         {
             0 => namePlayerOneText != null ? namePlayerOneText.text : "Player 1",
@@ -126,6 +125,32 @@ public class GameManager : NetworkBehaviour
 
         if (finalMessagePanel != null) finalMessagePanel.SetActive(true);
         if (winObject != null) winObject.SetActive(true);
+
+        // ── Enviar score a PlayFab solo para el cliente local ganador ──
+        PlayerRef localPlayer = Runner.LocalPlayer;
+        PlayerRef winner = winnerIndex switch
+        {
+            0 => PlayerOne,
+            1 => PlayerTwo,
+            2 => PlayerThree,
+            3 => PlayerFour,
+            _ => default
+        };
+
+        if (localPlayer == winner && PlayFabManager.Instance != null)
+        {
+            int winnerScore = winnerIndex switch
+            {
+                0 => ScorePlayerOne,
+                1 => ScorePlayerTwo,
+                2 => ScorePlayerThree,
+                3 => ScorePlayerFour,
+                _ => 0
+            };
+
+            PlayFabManager.Instance.EnviarScore(winnerScore);
+            Debug.Log($"[PlayFab] Score enviado: {winnerScore} para {winnerName}");
+        }
     }
 
     private void UpdateScoreDisplay(int p1, int p2, int p3, int p4)
