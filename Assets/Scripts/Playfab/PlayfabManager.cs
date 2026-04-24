@@ -1,7 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using PlayFab;
+﻿using PlayFab;
 using PlayFab.ClientModels;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -294,16 +295,50 @@ public class PlayFabManager : MonoBehaviour
         });
     }
 
-    public void EnviarScore(int score, string statisticName = "HighScore")
+    // Reemplaza EnviarScore con este método más completo
+    public void EnviarEstadisticas(bool gano, int scorePartida)
     {
-        PlayFabClientAPI.UpdatePlayerStatistics(new UpdatePlayerStatisticsRequest
+        // Primero obtenemos los valores actuales para acumular
+        PlayFabClientAPI.GetPlayerStatistics(new GetPlayerStatisticsRequest(),
+        result =>
         {
-            Statistics = new List<StatisticUpdate>
-        {
-            new StatisticUpdate { StatisticName = statisticName, Value = score }
-        }
+            int winsActual = result.Statistics.FirstOrDefault(s => s.StatisticName == "Wins")?.Value ?? 0;
+            int lossesActual = result.Statistics.FirstOrDefault(s => s.StatisticName == "Losses")?.Value ?? 0;
+            int totalScoreActual = result.Statistics.FirstOrDefault(s => s.StatisticName == "TotalScore")?.Value ?? 0;
+
+            int nuevoWins = gano ? winsActual + 1 : winsActual;
+            int nuevoLosses = gano ? lossesActual : lossesActual + 1;
+            int nuevoTotalScore = totalScoreActual + scorePartida;
+
+            PlayFabClientAPI.UpdatePlayerStatistics(new UpdatePlayerStatisticsRequest
+            {
+                Statistics = new List<StatisticUpdate>
+                {
+                new StatisticUpdate { StatisticName = "Wins",       Value = nuevoWins },
+                new StatisticUpdate { StatisticName = "Losses",     Value = nuevoLosses },
+                new StatisticUpdate { StatisticName = "TotalScore", Value = nuevoTotalScore }
+                }
+            },
+            r => Debug.Log($"[PlayFab] Stats enviadas — Wins:{nuevoWins} Losses:{nuevoLosses} TotalScore:{nuevoTotalScore}"),
+            e => Debug.LogError("Error enviando stats: " + e.ErrorMessage));
         },
-        result => Debug.Log("Score enviado: " + score),
-        error => Debug.LogError("Error enviando score: " + error.ErrorMessage));
+        error => Debug.LogError("Error obteniendo stats actuales: " + error.ErrorMessage));
+    }
+
+    // Obtener leaderboard por cualquier estadística
+    public void ObtenerLeaderboardPor(Action<List<PlayerLeaderboardEntry>> onComplete, string statisticName, int maxResults = 20)
+    {
+        PlayFabClientAPI.GetLeaderboard(new GetLeaderboardRequest
+        {
+            StatisticName = statisticName,
+            StartPosition = 0,
+            MaxResultsCount = maxResults
+        },
+        result => onComplete?.Invoke(result.Leaderboard),
+        error =>
+        {
+            MostrarError("Error obteniendo leaderboard: " + error.ErrorMessage);
+            onComplete?.Invoke(new List<PlayerLeaderboardEntry>());
+        });
     }
 }

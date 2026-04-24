@@ -98,8 +98,7 @@ public class PhotonManager : MonoBehaviour, INetworkRunnerCallbacks
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
         int currentCount = runner.SessionInfo.PlayerCount;
-
-        ActualizarWaitingPanel(currentCount);    // Se actualiza en host Y clientes
+        ActualizarWaitingPanel(currentCount);
 
         if (!runner.IsServer) return;
 
@@ -116,14 +115,13 @@ public class PhotonManager : MonoBehaviour, INetworkRunnerCallbacks
             NetworkObject networkObject = runner.Spawn(prefabPlayer, spawnPosition, Quaternion.identity, player);
             players.Add(player, networkObject);
 
-            // Registrar jugador en GameManager cuando entra
             GameManager gameManager = FindFirstObjectByType<GameManager>();
             if (gameManager != null)
             {
                 int index = players.Count - 1;
 
-                // Obtener username desde PlayFabManager si está disponible
-                string username = PlayFabManager.Instance != null && !string.IsNullOrEmpty(PlayFabManager.Instance.UsernameActual) ? PlayFabManager.Instance.UsernameActual : $"Player {index + 1}";
+                // Nombre temporal — Rpc_PedirNombre lo reemplazará con el nombre real de PlayFab
+                string username = $"Player {index + 1}";
 
                 gameManager.RegistrarJugador(player, index, username);
             }
@@ -133,7 +131,6 @@ public class PhotonManager : MonoBehaviour, INetworkRunnerCallbacks
             Debug.Log($"Player {player.PlayerId} already exists in playerList.");
         }
     }
-
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
     {
         if (players.ContainsKey(player))

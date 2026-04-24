@@ -48,7 +48,7 @@ public class GameManager : NetworkBehaviour
     {
         if (!Object.HasStateAuthority) return;
 
-        Debug.Log($"[GameManager] Registrando jugador {player} '{username}' en slot {index}");
+        Debug.Log($"[GameManager] RegistrarJugador — player:{player} index:{index}");
 
         switch (index)
         {
@@ -58,10 +58,39 @@ public class GameManager : NetworkBehaviour
             case 3: PlayerFour = player; break;
         }
 
-        // Guardar nombre localmente en el host
+        // Si es el host registrándose a sí mismo, leer su nombre directamente
+        if (player == Runner.LocalPlayer && PlayFabManager.Instance != null && !string.IsNullOrEmpty(PlayFabManager.Instance.UsernameActual))
+            _playerNames[index] = PlayFabManager.Instance.UsernameActual;
+        else
+            _playerNames[index] = username; // nombre temporal para clientes remotos
+
+        Rpc_SincronizarNombres(
+            _playerNames[0] ?? "",
+            _playerNames[1] ?? "",
+            _playerNames[2] ?? "",
+            _playerNames[3] ?? ""
+        );
+    }
+
+    // El cliente llama esto para enviar su propio nombre al host
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    public void Rpc_EnviarNombrePropio(PlayerRef player, string username)
+    {
+        Debug.Log($"[GameManager] Rpc_EnviarNombrePropio — player:{player} username:{username}");
+        // Buscar en qué slot está este jugador y actualizar su nombre
+        int index = -1;
+        if (player == PlayerOne) index = 0;
+        else if (player == PlayerTwo) index = 1;
+        else if (player == PlayerThree) index = 2;
+        else if (player == PlayerFour) index = 3;
+
+        Debug.Log($"[GameManager] index encontrado: {index}");
+
+
+        if (index < 0) return;
+
         _playerNames[index] = username;
 
-        // Sincronizar TODOS los nombres acumulados a todos los clientes
         Rpc_SincronizarNombres(
             _playerNames[0] ?? "",
             _playerNames[1] ?? "",
@@ -122,11 +151,11 @@ public class GameManager : NetworkBehaviour
 
         if (finalMessageText != null)
             finalMessageText.text = $"{winnerName} wins!";
-
         if (finalMessagePanel != null) finalMessagePanel.SetActive(true);
         if (winObject != null) winObject.SetActive(true);
 
-        // ── Enviar score a PlayFab solo para el cliente local ganador ──
+        if (PlayFabManager.Instance == null) return;
+
         PlayerRef localPlayer = Runner.LocalPlayer;
         PlayerRef winner = winnerIndex switch
         {
@@ -137,20 +166,29 @@ public class GameManager : NetworkBehaviour
             _ => default
         };
 
-        if (localPlayer == winner && PlayFabManager.Instance != null)
-        {
-            int winnerScore = winnerIndex switch
-            {
-                0 => ScorePlayerOne,
-                1 => ScorePlayerTwo,
-                2 => ScorePlayerThree,
-                3 => ScorePlayerFour,
-                _ => 0
-            };
+        // Obtener score del jugador local (no solo del ganador)
+        int localIndex = -1;
+        if (localPlayer == PlayerOne) localIndex = 0;
+        else if (localPlayer == PlayerTwo) localIndex = 1;
+        else if (localPlayer == PlayerThree) localIndex = 2;
+        else if (localPlayer == PlayerFour) localIndex = 3;
 
-            PlayFabManager.Instance.EnviarScore(winnerScore);
-            Debug.Log($"[PlayFab] Score enviado: {winnerScore} para {winnerName}");
-        }
+        if (localIndex < 0) return; // Este cliente no es jugador registrado
+
+        int scoreLocal = localIndex switch
+        {
+            0 => ScorePlayerOne,
+            1 => ScorePlayerTwo,
+            2 => ScorePlayerThree,
+            3 => ScorePlayerFour,
+            _ => 0
+        };
+
+        bool gano = localPlayer == winner;
+
+        // Todos los jugadores envían sus propias stats
+        PlayFabManager.Instance.EnviarEstadisticas(gano, scoreLocal);
+        Debug.Log($"[PlayFab] {(gano ? "Victoria" : "Derrota")} — Score: {scoreLocal}");
     }
 
     private void UpdateScoreDisplay(int p1, int p2, int p3, int p4)
